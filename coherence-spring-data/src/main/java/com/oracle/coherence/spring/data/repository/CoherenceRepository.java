@@ -1,3 +1,18 @@
+/*
+ * Copyright 2017-2021 original authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.oracle.coherence.spring.data.repository;
 
 import java.math.BigDecimal;
@@ -98,13 +113,6 @@ public interface CoherenceRepository<T, ID> extends CrudRepository<T, ID> {
 	 * @see com.oracle.coherence.repository.AbstractRepository#saveAll(Object[])
 	 */
 	void saveAll(T... entities);
-
-	/**
-	 * (non-Javadoc)
-	 *
-	 * @see com.oracle.coherence.repository.AbstractRepository#saveAll(Collection)
-	 */
-	void saveAll(Collection<? extends T> colEntities);
 
 	/**
 	 * (non-Javadoc)
@@ -246,70 +254,70 @@ public interface CoherenceRepository<T, ID> extends CrudRepository<T, ID> {
 	 *
 	 * @see com.oracle.coherence.repository.AbstractRepository#remove(Object, boolean)
 	 */
-	T delete(T entity, boolean fReturn); // TODO remap in base class
+	T delete(T entity, boolean fReturn);
 
 	/**
 	 * (non-Javadoc)
 	 *
 	 * @see com.oracle.coherence.repository.AbstractRepository#removeAllById(Collection)
 	 */
-	boolean deleteAllById(Collection<? extends ID> colIds); // TODO remap in base class
+	boolean deleteAllById(Collection<? extends ID> colIds);
 
 	/**
 	 * (non-Javadoc)
 	 *
 	 * @see com.oracle.coherence.repository.AbstractRepository#removeAllById(Collection, boolean)
 	 */
-	Map<ID, T> deleteAllById(Collection<? extends ID> colIds, boolean fReturn); // TODO remap in base class
+	Map<ID, T> deleteAllById(Collection<? extends ID> colIds, boolean fReturn);
 
 	/**
 	 * (non-Javadoc)
 	 *
 	 * @see com.oracle.coherence.repository.AbstractRepository#removeAll(Object[])
 	 */
-	boolean deleteAll(T... entities); // TODO remap in base class
+	boolean deleteAll(T... entities);
 
 	/**
 	 * (non-Javadoc)
 	 *
 	 * @see com.oracle.coherence.repository.AbstractRepository#removeAll(Collection)
 	 */
-	boolean deleteAll(Collection<? extends T> colEntities); // TODO remap in base class
+	boolean deleteAll(Collection<? extends T> colEntities);
 
 	/**
 	 * (non-Javadoc)
 	 *
 	 * @see com.oracle.coherence.repository.AbstractRepository#removeAll(Collection, boolean)
 	 */
-	Map<ID, T> removeAll(Collection<? extends T> colEntities, boolean fReturn);
+	Map<ID, T> deleteAll(Collection<? extends T> colEntities, boolean fReturn);
 
 	/**
 	 * (non-Javadoc)
 	 *
 	 * @see com.oracle.coherence.repository.AbstractRepository#removeAll(Stream)
 	 */
-	boolean removeAll(Stream<? extends T> strEntities);
+	boolean deleteAll(Stream<? extends T> strEntities);
 
 	/**
 	 * (non-Javadoc)
 	 *
 	 * @see com.oracle.coherence.repository.AbstractRepository#removeAll(Stream, boolean)
 	 */
-	Map<ID, T> removeAll(Stream<? extends T> strEntities, boolean fReturn);
+	Map<ID, T> deleteAll(Stream<? extends T> strEntities, boolean fReturn);
 
 	/**
 	 * (non-Javadoc)
 	 *
 	 * @see com.oracle.coherence.repository.AbstractRepository#removeAll(Filter)
 	 */
-	boolean removeAll(Filter<?> filter);
+	boolean deleteAll(Filter<?> filter);
 
 	/**
 	 * (non-Javadoc)
 	 *
 	 * @see com.oracle.coherence.repository.AbstractRepository#removeAll(Filter)
 	 */
-	Map<ID, T> removeAll(Filter<?> filter, boolean fReturn);
+	Map<ID, T> deleteAll(Filter<?> filter, boolean fReturn);
 
 	// ---- Stream API support ----------------------------------------------
 

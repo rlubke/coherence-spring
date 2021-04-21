@@ -16,6 +16,7 @@
 package com.oracle.coherence.spring.data.model;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.Objects;
 
@@ -70,6 +71,14 @@ public class Book implements Cloneable, Serializable {
         this.published = published;
     }
 
+    public Book(UUID uuid) {
+        this.uuid = uuid;
+        this.title = "UNTITLED";
+        this.pages = 0;
+        this.author = null;
+        this.published = null;
+    }
+
     public Book(Book copy) {
         this.uuid = copy.uuid;
         this.title = copy.title;
@@ -112,6 +121,33 @@ public class Book implements Cloneable, Serializable {
      */
     public int getPages() {
         return this.pages;
+    }
+
+    /**
+     * Returns the number of pages in this {@code book} as a long.
+     *
+     * @return the number of pages in this {@code book} as a long
+     */
+    public long getPagesAsLong() {
+        return this.pages;
+    }
+
+    /**
+     * Returns the number of pages in this {@code book} as a double.
+     *
+     * @return the number of pages in this {@code book} as a double
+     */
+    public double getPagesAsDouble() {
+        return this.pages;
+    }
+
+    /**
+     * Returns the number of pages in this {@code book} as a BigDecimal.
+     *
+     * @return the number of pages in this {@code book} as a BigDecimal
+     */
+    public BigDecimal getPagesAsBigDecimal() {
+        return BigDecimal.valueOf(getPagesAsLong());
     }
 
     /**

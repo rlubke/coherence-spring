@@ -21,7 +21,7 @@ import java.util.Objects;
 /**
  * Entity class representing an Author.
  */
-public class Author implements Serializable {
+public class Author implements Serializable, Comparable<Author> {
 
     /**
      * The {@code Author}'s first name.
@@ -85,5 +85,10 @@ public class Author implements Serializable {
                 "firstName='" + this.firstName + '\'' +
                 ", lastName='" + this.lastName + '\'' +
                 '}';
+    }
+
+    @Override
+    public int compareTo(Author o) {
+        return this.lastName.compareTo(o.getLastName());
     }
 }

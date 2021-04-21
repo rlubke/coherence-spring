@@ -15,7 +15,10 @@
  */
 package com.oracle.coherence.spring.data.repository;
 
+import java.util.Collection;
+import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import com.oracle.coherence.repository.AbstractRepository;
@@ -23,7 +26,9 @@ import com.oracle.coherence.spring.data.core.mapping.CoherencePersistentEntity;
 import com.oracle.coherence.spring.data.core.mapping.CoherencePersistentProperty;
 import com.tangosol.net.NamedMap;
 import com.tangosol.util.Base;
-import com.tangosol.util.filter.KeyFilter;
+import com.tangosol.util.Filter;
+import com.tangosol.util.Filters;
+import com.tangosol.util.filter.InKeySetFilter;
 
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.repository.NoRepositoryBean;
@@ -146,7 +151,8 @@ public class BaseCoherenceRepository<T, ID>
 	 * @throws IllegalArgumentException in case the given {@link Iterable ids} or one of its items is {@literal null}.
 	 */
 	public Iterable<T> findAllById(Iterable<ID> ids) {
-		return findAll(new KeyFilter<>(
+		return findAll(new InKeySetFilter<>(
+				Filters.always(),
 				StreamSupport.stream(ids.spliterator(), false).collect(Collectors.toSet())));
 	}
 
@@ -165,5 +171,107 @@ public class BaseCoherenceRepository<T, ID>
 	 */
 	public void deleteAll() {
 		getMap().truncate();
+	}
+
+	/**
+	 * Alias for {@link #remove(Object, boolean)}.
+	 * @param entity  the entity to remove
+	 * @param fReturn the flag specifying whether to return removed entity
+	 * @return deleted entity, iff {@code fReturn == true}; {@code null}
+	 * otherwise
+	 */
+	public T delete(T entity, boolean fReturn) {
+		return remove(entity, fReturn);
+	}
+
+	/**
+	 * Alias for {@link #removeAllById(Collection)}.
+	 * @param colIds the identifiers of the entities to remove
+	 * @return {@code true} if this repository changed as a result of the call
+	 */
+	public boolean deleteAllById(Collection<? extends ID> colIds) {
+		return removeAllById(colIds);
+	}
+
+	/**
+	 * Alias for {@link #removeAllById(Collection, boolean)}.
+	 * @param colIds  the identifiers of the entities to remove
+	 * @param fReturn the flag specifying whether to return removed entity
+	 * @return the map of removed entity identifiers as keys, and the removed
+	 * entities as values iff {@code fReturn == true}; {@code null} otherwise
+	 */
+	public Map<ID, T> deleteAllById(Collection<? extends ID> colIds, boolean fReturn) {
+		return removeAllById(colIds, fReturn);
+	}
+
+	/**
+	 * Alias for {@link #removeAll(Object[])}.
+	 * @param entities the entities to remove
+	 * @return {@code true} if this repository changed as a result of the call
+	 */
+	public boolean deleteAll(T... entities) {
+		return removeAll(entities);
+	}
+
+	/**
+	 * Alias for {@link #removeAll(Collection)}.
+	 * @param colEntities the entities to remove
+	 * @return {@code true} if this repository changed as a result of the call
+	 */
+	public boolean deleteAll(Collection<? extends T> colEntities) {
+		return removeAll(colEntities);
+	}
+
+	/**
+	 * Alias for {@link #removeAll(Collection, boolean)}.
+	 * @param colEntities the entities to remove
+	 * @param fReturn     the flag specifying whether to return removed entity
+	 * @return the map of removed entity identifiers as keys, and the removed
+	 * entities as values iff {@code fReturn == true}; {@code null} otherwise
+	 */
+	public Map<ID, T> deleteAll(Collection<? extends T> colEntities, boolean fReturn) {
+		return removeAll(colEntities, fReturn);
+	}
+
+	/**
+	 * Alias for {@link #removeAll(Stream)}.
+	 * @param strEntities the entities to remove
+	 * @return {@code true} if this repository changed as a result of the call
+	 */
+	public boolean deleteAll(Stream<? extends T> strEntities) {
+		return removeAll(strEntities);
+	}
+
+	/**
+	 * Alias for {@link #removeAll(Stream, boolean)}.
+	 * @param strEntities the entities to remove
+	 * @param fReturn     the flag specifying whether to return removed entity
+	 * @return the map of removed entity identifiers as keys, and the removed
+	 * entities as values iff {@code fReturn == true}; {@code null} otherwise
+	 */
+	public Map<ID, T> deleteAll(Stream<? extends T> strEntities, boolean fReturn) {
+		return removeAll(strEntities, fReturn);
+	}
+
+	/**
+	 * Alias for {@link #removeAll(Filter)}.
+	 * @param filter the criteria that should be used to select entities to
+	 *               remove
+	 * @return {@code true} if this repository changed as a result of the call
+	 */
+	public boolean deleteAll(Filter<?> filter) {
+		return removeAll(filter);
+	}
+
+	/**
+	 * Alias for {@link #removeAll(Filter, boolean)}.
+	 * @param filter  the criteria that should be used to select entities to
+	 *                remove
+	 * @param fReturn the flag specifying whether to return removed entity
+	 * @return the map of removed entity identifiers as keys, and the removed
+	 * entities as values iff {@code fReturn == true}; {@code null} otherwise
+	 */
+	public Map<ID, T> deleteAll(Filter<?> filter, boolean fReturn) {
+		return removeAll(filter, fReturn);
 	}
 }
