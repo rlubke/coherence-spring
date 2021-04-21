@@ -15,10 +15,13 @@
  */
 package com.oracle.coherence.spring.data.support;
 
+import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.Collections;
 
-import com.oracle.coherence.spring.data.repository.BaseCoherenceRepository;
+import javax.persistence.Entity;
+
+import com.oracle.coherence.spring.data.repository.CoherenceRepository;
 
 import org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport;
 
@@ -45,7 +48,12 @@ public class CoherenceRepositoryConfigurationExtension extends RepositoryConfigu
 	}
 
 	@Override
+	protected Collection<Class<? extends Annotation>> getIdentifyingAnnotations() {
+		return Collections.singleton(Entity.class);
+	}
+
+	@Override
 	protected Collection<Class<?>> getIdentifyingTypes() {
-		return Collections.singleton(BaseCoherenceRepository.class);
+		return Collections.singleton(CoherenceRepository.class);
 	}
 }

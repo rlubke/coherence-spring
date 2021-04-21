@@ -22,7 +22,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.oracle.coherence.spring.data.repository.BaseCoherenceRepository;
+import com.oracle.coherence.spring.data.repository.BackingRepository;
 import com.oracle.coherence.spring.data.support.CoherenceRepositoryFactoryBean;
 
 import org.springframework.beans.factory.FactoryBean;
@@ -127,7 +127,7 @@ public @interface EnableCoherenceRepositories {
 	 *
 	 * @return {@link DefaultRepositoryBaseClass} by default.
 	 */
-	Class<?> repositoryBaseClass() default BaseCoherenceRepository.class;
+	Class<?> repositoryBaseClass() default BackingRepository.class;
 
 	/**
 	 * Configures whether nested repository-interfaces (e.g. defined as inner classes) should be

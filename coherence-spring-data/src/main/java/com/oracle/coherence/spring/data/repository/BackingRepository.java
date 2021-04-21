@@ -17,6 +17,7 @@ package com.oracle.coherence.spring.data.repository;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -31,29 +32,26 @@ import com.tangosol.util.Filters;
 import com.tangosol.util.filter.InKeySetFilter;
 
 import org.springframework.data.mapping.context.MappingContext;
-import org.springframework.data.repository.NoRepositoryBean;
-import org.springframework.data.repository.Repository;
 
 /**
- * TODO(rlubke) docs.
+ * The BackingRepository is a Coherence Repository backing Coherence-based Spring repositories.
  *
  * @param <T> the entity type
  * @param <ID> the id type
  *
  * @author Ryan Lubke
  * @since 3.0.0
+ *
+ * @see CoherenceRepository
  */
 @SuppressWarnings("unused")
-@NoRepositoryBean
-public class BaseCoherenceRepository<T, ID>
-		extends AbstractRepository<ID, T>
-		implements Repository<T, ID> {
+public class BackingRepository<T, ID> extends AbstractRepository<ID, T> {
 
 	private final NamedMap<ID, T> namedMap;
 	private final MappingContext<CoherencePersistentEntity<T>, CoherencePersistentProperty> mappingContext;
 	private final Class<? extends T> domainType;
 
-	public BaseCoherenceRepository(NamedMap<ID, T> namedMap,
+	public BackingRepository(NamedMap<ID, T> namedMap,
 			MappingContext<CoherencePersistentEntity<T>, CoherencePersistentProperty> mappingContext,
 			Class<? extends T> domainType) {
 		this.namedMap = namedMap;
@@ -81,8 +79,8 @@ public class BaseCoherenceRepository<T, ID>
 
 		try {
 			return (ID) (idProp.usePropertyAccess()
-					? idProp.getGetter().invoke(t)
-					: idProp.getField().get(t));
+					? Objects.requireNonNull(idProp.getGetter()).invoke(t)
+					: Objects.requireNonNull(idProp.getField()).get(t));
 		}
 		catch (Exception ex) {
 			throw Base.ensureRuntimeException(ex);
@@ -209,7 +207,8 @@ public class BaseCoherenceRepository<T, ID>
 	 * @param entities the entities to remove
 	 * @return {@code true} if this repository changed as a result of the call
 	 */
-	public boolean deleteAll(T... entities) {
+	@SafeVarargs
+	public final boolean deleteAll(T... entities) {
 		return removeAll(entities);
 	}
 

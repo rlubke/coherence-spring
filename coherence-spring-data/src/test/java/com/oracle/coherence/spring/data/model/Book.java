@@ -20,6 +20,7 @@ import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.Objects;
 
+import javax.persistence.Entity;
 import javax.persistence.Id;
 
 import com.tangosol.util.UUID;
@@ -27,6 +28,7 @@ import com.tangosol.util.UUID;
 /**
  * An entity for representing a {@code book}.
  */
+@Entity
 public class Book implements Cloneable, Serializable {
     /**
      * The unique id of this book.
@@ -37,12 +39,12 @@ public class Book implements Cloneable, Serializable {
     /**
      * The title of the {@code book}.
      */
-    protected final String title;
+    protected String title;
 
     /**
      * The {@link Author author} of the {@code book}.
      */
-    protected final Author author;
+    protected Author author;
 
     /**
      * The number of pages the {@code book} has.
@@ -52,7 +54,7 @@ public class Book implements Cloneable, Serializable {
     /**
      * The {@code book}'s publication date.
      */
-    protected final Calendar published;
+    protected Calendar published;
 
 
     /**
@@ -85,6 +87,10 @@ public class Book implements Cloneable, Serializable {
         this.pages = copy.pages;
         this.author = copy.author;
         this.published = copy.published;
+    }
+
+    public Book() {
+        this.uuid = new UUID();
     }
 
     /**

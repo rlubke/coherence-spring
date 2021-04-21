@@ -20,7 +20,7 @@ import java.util.Optional;
 
 import com.oracle.coherence.spring.data.core.mapping.CoherenceMappingContext;
 import com.oracle.coherence.spring.data.core.mapping.CoherencePersistentEntity;
-import com.oracle.coherence.spring.data.repository.BaseCoherenceRepository;
+import com.oracle.coherence.spring.data.repository.BackingRepository;
 import com.oracle.coherence.spring.data.repository.query.CoherenceRepositoryQuery;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.NamedMap;
@@ -77,7 +77,7 @@ public class CoherenceRepositoryFactory extends RepositoryFactorySupport {
 	@Override
 	protected Object getTargetRepository(RepositoryInformation metadata) {
 
-		return new BaseCoherenceRepository(ensureNamedMap(), this.mappingContext, metadata.getDomainType());
+		return new BackingRepository(ensureNamedMap(), this.mappingContext, metadata.getDomainType());
 	}
 
 	private Session ensureSession() {
@@ -102,7 +102,7 @@ public class CoherenceRepositoryFactory extends RepositoryFactorySupport {
 	@Override
 	protected Class<?> getRepositoryBaseClass(RepositoryMetadata metadata) {
 
-		return BaseCoherenceRepository.class;
+		return BackingRepository.class;
 	}
 
 	@Override
