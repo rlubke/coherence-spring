@@ -123,6 +123,7 @@ public interface CoherenceRepository<T, ID> extends CrudRepository<T, ID> {
 	 * Store all specified entities as a batch.
 	 * @param entities the entities to store
 	 */
+	@SuppressWarnings("unchecked")
 	void saveAll(T... entities);
 
 	/**
@@ -496,6 +497,7 @@ public interface CoherenceRepository<T, ID> extends CrudRepository<T, ID> {
 	 * @param entities the entities to remove
 	 * @return {@code true} if this repository changed as a result of the call
 	 */
+	@SuppressWarnings("unchecked")
 	boolean deleteAll(T... entities);
 
 	/**
