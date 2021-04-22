@@ -18,7 +18,7 @@ package com.oracle.coherence.spring.data.support;
 import java.io.Serializable;
 import java.util.Locale;
 
-import com.oracle.coherence.spring.data.config.CoherenceRepository;
+import com.oracle.coherence.spring.data.config.CoherenceMap;
 import com.oracle.coherence.spring.data.core.mapping.CoherenceMappingContext;
 import com.tangosol.net.Coherence;
 
@@ -56,8 +56,8 @@ public class CoherenceRepositoryFactoryBean<T extends Repository<S, ID>, S, ID e
 		Class<?> repoClass = getObjectType();
 		String mapName;
 		String sessionName = Coherence.DEFAULT_NAME;
-		if (repoClass.isAnnotationPresent(CoherenceRepository.class)) {
-			CoherenceRepository repository = repoClass.getAnnotation(CoherenceRepository.class);
+		if (repoClass.isAnnotationPresent(CoherenceMap.class)) {
+			CoherenceMap repository = repoClass.getAnnotation(CoherenceMap.class);
 			mapName = repository.value();
 			sessionName = repository.session();
 		}

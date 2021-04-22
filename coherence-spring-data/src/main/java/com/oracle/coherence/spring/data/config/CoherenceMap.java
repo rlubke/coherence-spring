@@ -23,6 +23,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import com.tangosol.net.Coherence;
+import com.tangosol.net.NamedMap;
+import com.tangosol.net.Session;
+
 /**
  * Optional marker for Coherence repositories where the repository itself
  * should use a cache name different from the name that is auto-selected by
@@ -35,8 +39,20 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-public @interface CoherenceRepository {
-	String value(); // cache name (required)
+public @interface CoherenceMap {
+	/**
+	 * Specifies the name of the Coherence {@link NamedMap} the annotated repository
+	 * should use.
+	 * @return the name of the Coherence {@link NamedMap} the annotated repository
+	 *         should use
+	 */
+	String value();
 
-	String session() default "";
+	/**
+	 * Specifies the name of the {@link Session} should be used to look up
+	 * the {@link NamedMap}.
+	 * @return the name of the {@link Session} should be used to look up
+	 * 	      the {@link NamedMap}
+	 */
+	String session() default Coherence.DEFAULT_SCOPE;
 }
