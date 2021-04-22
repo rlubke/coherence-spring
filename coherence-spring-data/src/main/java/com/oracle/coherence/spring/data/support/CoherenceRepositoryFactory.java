@@ -27,6 +27,7 @@ import com.tangosol.net.NamedMap;
 import com.tangosol.net.Session;
 
 import org.springframework.context.ApplicationContext;
+import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.data.repository.core.NamedQueries;
@@ -47,14 +48,44 @@ import org.springframework.lang.Nullable;
  */
 public class CoherenceRepositoryFactory extends RepositoryFactorySupport {
 
+	/**
+	 * The Spring {@code ApplicationContext}.
+	 */
 	private final ApplicationContext applicationContext;
+
+	/**
+	 * The {@link MappingContext}.
+	 */
 	private final CoherenceMappingContext mappingContext;
+
+	/**
+	 * The Coherence {@link Session} name.
+	 */
 	private final String sessionName;
+
+	/**
+	 * The Coherence {@link NamedMap} name.
+	 */
 	private final String mapName;
+
+	/**
+	 * The Coherence {@link Session}.
+	 */
 	private Session session;
+
+	/**
+	 * The Coherence {@link NamedMap}.
+	 */
 	@SuppressWarnings("rawtypes")
 	private NamedMap namedMap;
 
+	/**
+	 * Creates a new {@code CoherenceRepositoryFactory}.
+	 * @param applicationContext the Spring {@link ApplicationContext}
+	 * @param mappingContext the {@link MappingContext}
+	 * @param sessionName the {@link Session} name
+	 * @param mapName the {@link NamedMap} name
+	 */
 	public CoherenceRepositoryFactory(ApplicationContext applicationContext,
 			CoherenceMappingContext mappingContext,
 			String sessionName, String mapName) {
@@ -80,6 +111,10 @@ public class CoherenceRepositoryFactory extends RepositoryFactorySupport {
 		return new BackingRepository(ensureNamedMap(), this.mappingContext, metadata.getDomainType());
 	}
 
+	/**
+	 * Ensures a {@link Session} is available.
+	 * @return a {@link Session} based on the {@link #sessionName}
+	 */
 	private Session ensureSession() {
 
 		if (this.session == null) {
@@ -89,6 +124,10 @@ public class CoherenceRepositoryFactory extends RepositoryFactorySupport {
 		return this.session;
 	}
 
+	/**
+	 * Ensures a {@link NamedMap} is available.
+	 * @return a {@link NamedMap} based on the {@link #mapName}
+	 */
 	@SuppressWarnings("rawtypes")
 	private NamedMap ensureNamedMap() {
 
@@ -112,8 +151,14 @@ public class CoherenceRepositoryFactory extends RepositoryFactorySupport {
 		return Optional.of(new CoherenceLookupStrategy(evaluationContextProvider));
 	}
 
+	/**
+	 * Coherence implementation of {@link QueryLookupStrategy}.
+	 */
 	private final class CoherenceLookupStrategy implements QueryLookupStrategy {
 
+		/**
+		 * The {@link QueryMethodEvaluationContextProvider}.
+		 */
 		private final QueryMethodEvaluationContextProvider evaluationContextProvider;
 
 		private CoherenceLookupStrategy(QueryMethodEvaluationContextProvider evalContextProvider) {

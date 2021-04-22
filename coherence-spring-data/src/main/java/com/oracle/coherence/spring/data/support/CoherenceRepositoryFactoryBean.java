@@ -21,10 +21,13 @@ import java.util.Locale;
 import com.oracle.coherence.spring.data.config.CoherenceMap;
 import com.oracle.coherence.spring.data.core.mapping.CoherenceMappingContext;
 import com.tangosol.net.Coherence;
+import com.tangosol.net.NamedMap;
+import com.tangosol.net.Session;
 
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.support.RepositoryFactoryBeanSupport;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
@@ -43,14 +46,35 @@ public class CoherenceRepositoryFactoryBean<T extends Repository<S, ID>, S, ID e
 		extends RepositoryFactoryBeanSupport<T, S, ID>
 		implements ApplicationContextAware {
 
+	/**
+	 * The Spring {@code ApplicationContext}.
+	 */
 	protected ApplicationContext applicationContext;
-	private CoherenceMappingContext ctx = new CoherenceMappingContext();
 
+	/**
+	 * The {@link MappingContext}.
+	 */
+	private final CoherenceMappingContext ctx = new CoherenceMappingContext();
+
+	/**
+	 * Constructs a new {@code CoherenceRepositoryFactoryBean} for the provided repository interface.
+	 * @param repositoryInterface the repository interface
+	 */
 	public CoherenceRepositoryFactoryBean(Class<? extends T> repositoryInterface) {
 		super(repositoryInterface);
 		setMappingContext(this.ctx);
 	}
 
+	/**
+	 * First checks for the presence of the {@link CoherenceMap} annotation to
+	 * find the name of the Coherence {@link NamedMap} and {@link Session}.  If the
+	 * annotation is not present, then if the repository class name itself follows
+	 * the format of [Entity-Type]Repository (e.g., BookRepository), then the {@link NamedMap}
+	 * will be looked up using the lower-case name of the entity type.  Using the
+	 * {@code BookRepository} example, the {@link NamedMap} would be resolved to {@literal book}.
+	 * @return @inheritDoc
+	 * @throws IllegalStateException if the {@link NamedMap} name cannot be resolved
+	 */
 	@Override
 	protected RepositoryFactorySupport createRepositoryFactory() {
 		Class<?> repoClass = getObjectType();
@@ -68,7 +92,9 @@ public class CoherenceRepositoryFactoryBean<T extends Repository<S, ID>, S, ID e
 				mapName = repoClassName.substring(0, idx).toLowerCase(Locale.ROOT);
 			}
 			else {
-				throw new IllegalStateException();
+				throw new IllegalStateException(String.format("Unable to determine which NamedMap to use." +
+						"  Please annotate the Repository interface, %s, with com.coherence.spring.data.config.CoherenceMap" +
+						" and specify the name and/or session the repository should use.", repoClass.getName()));
 			}
 		}
 		return new CoherenceRepositoryFactory(this.applicationContext, this.ctx, sessionName, mapName);
