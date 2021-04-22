@@ -37,6 +37,15 @@ import com.tangosol.util.stream.RemoteStream;
 
 import org.springframework.data.repository.CrudRepository;
 
+/**
+ * Coherence-specific {@link org.springframework.data.repository.Repository} interface.
+ *
+ * @param <T> the domain type the repository manages
+ * @param <ID> the type of the id of the entity the repository manages
+ *
+ * @author Ryan Lubke
+ * @since 3.0.0
+ */
 public interface CoherenceRepository<T, ID> extends CrudRepository<T, ID> {
 
 	@Override
