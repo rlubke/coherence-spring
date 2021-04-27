@@ -18,6 +18,7 @@ package com.oracle.coherence.spring.data.repository;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -138,6 +139,25 @@ public class BackingRepository<T, ID> extends AbstractRepository<ID, T> {
 	}
 
 	/**
+	 * Retrieves an entity by its id.
+	 * @param id must not be {@literal null}.
+	 * @return the entity with the given id or {@literal Optional#empty()} if none found.
+	 * @throws IllegalArgumentException if {@literal id} is {@literal null}.
+	 */
+	public Optional<T> findById(ID id) {
+		T result = get(id);
+		return Optional.ofNullable(get(id));
+	}
+
+	/**
+	 * Returns all instances of the type.
+	 * @return all entities
+	 */
+	public Iterable<T> findAll() {
+		return getAll();
+	}
+
+	/**
 	 * Returns all instances of the type {@code T} with the given IDs.
 	 * <p>
 	 * If some or all ids are not found, no entities are returned for these IDs.
@@ -149,7 +169,7 @@ public class BackingRepository<T, ID> extends AbstractRepository<ID, T> {
 	 * @throws IllegalArgumentException in case the given {@link Iterable ids} or one of its items is {@literal null}.
 	 */
 	public Iterable<T> findAllById(Iterable<ID> ids) {
-		return findAll(new InKeySetFilter<>(
+		return getAll(new InKeySetFilter<>(
 				Filters.always(),
 				StreamSupport.stream(ids.spliterator(), false).collect(Collectors.toSet())));
 	}
@@ -200,16 +220,6 @@ public class BackingRepository<T, ID> extends AbstractRepository<ID, T> {
 	 */
 	public Map<ID, T> deleteAllById(Collection<? extends ID> colIds, boolean fReturn) {
 		return removeAllById(colIds, fReturn);
-	}
-
-	/**
-	 * Alias for {@link #removeAll(Object[])}.
-	 * @param entities the entities to remove
-	 * @return {@code true} if this repository changed as a result of the call
-	 */
-	@SafeVarargs
-	public final boolean deleteAll(T... entities) {
-		return removeAll(entities);
 	}
 
 	/**

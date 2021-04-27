@@ -82,62 +82,8 @@ public interface CoherenceRepository<T, ID> extends CrudRepository<T, ID> {
 	void deleteAll();
 
 	/**
-	 * Return all entities that satisfy the specified criteria.
-	 * @param filter the criteria to evaluate
-	 * @return all entities that satisfy the specified criteria
-	 */
-	Collection<T> findAll(Filter<?> filter);
-
-	/**
-	 * Return all entities in this repository, sorted using
-	 * specified {@link Comparable} attribute.
-	 * @param orderBy the {@link Comparable} attribute to sort the results by
-	 * @param <R> the type of the extracted value
-	 * @return all entities in this repository, sorted using
-	 *         specified {@link Comparable} attribute.
-	 */
-	<R extends Comparable<? super R>> Collection<T> findAll(ValueExtractor<? super T, ? extends R> orderBy);
-
-	/**
-	 * Return all entities that satisfy the specified criteria, sorted using
-	 * specified {@link Comparable} attribute.
-	 * @param filter  the criteria to evaluate
-	 * @param orderBy the {@link Comparable} attribute to sort the results by
-	 * @param <R> the type of the extracted value
-	 * @return all entities that satisfy specified criteria, sorted using
-	 *         specified {@link Comparable} attribute.
-	 */
-	<R extends Comparable<? super R>> Collection<T> findAll(Filter<?> filter, ValueExtractor<? super T, ? extends R> orderBy);
-
-	/**
-	 * Return all entities in this repository, sorted using
-	 * specified {@link Remote.Comparator}.
-	 * @param orderBy the comparator to sort the results with
-	 * @return all entities in this repository, sorted using
-	 *         specified {@link Remote.Comparator}.
-	 */
-	Collection<T> findAll(Remote.Comparator<?> orderBy);
-
-	/**
-	 * Return all entities that satisfy the specified criteria, sorted using
-	 * specified {@link Remote.Comparator}.
-	 * @param filter  the criteria to evaluate
-	 * @param orderBy the comparator to sort the results with
-	 * @return all entities that satisfy specified criteria, sorted using
-	 * specified {@link Remote.Comparator}.
-	 */
-	Collection<T> findAll(Filter<?> filter, Remote.Comparator<?> orderBy);
-
-	/**
 	 * Store all specified entities as a batch.
-	 * @param entities the entities to store
-	 */
-	@SuppressWarnings("unchecked")
-	void saveAll(T... entities);
-
-	/**
-	 * Store all specified entities as a batch.
-	 * @param strEntities the entities to store
+	 * @param strEntities  the entities to store
 	 */
 	void saveAll(Stream<? extends T> strEntities);
 
@@ -148,6 +94,28 @@ public interface CoherenceRepository<T, ID> extends CrudRepository<T, ID> {
 	 * calling a getter on a remote {@code Person} entity instance:
 	 * <pre>
 	 *     people.get(ssn, Person::getName);
+	 * </pre>
+	 * <p>
+	 * You could also extract a {@link Fragment} containing the {@code Person}'s
+	 * {@code name} and {@code age} attributes by calling corresponding getters
+	 * on the remote {@code Person} entity instance:
+	 * <pre>
+	 *     Fragment&lt;Person> person = people.get(ssn, Extractors.fragment(Person::getName, Person::getAge));
+	 *     System.out.println("name: " + person.get(Person::getName));
+	 *     System.out.println(" age: " + person.get(Person::getAge));
+	 * </pre>
+	 * <p>
+	 * Finally, you can also extract nested fragments:
+	 * <pre>
+	 *     Fragment&lt;Person> person = people.get(ssn,
+	 *           Extractors.fragment(Person::getName, Person::getAge,
+	 *                               Extractors.fragment(Person::getAddress, Address::getCity, Address::getState));
+	 *     System.out.println(" name: " + person.get(Person::getName));
+	 *     System.out.println("  age: " + person.get(Person::getAge));
+	 *
+	 *     Fragment&lt;Address> address = person.getFragment(Person::getAddress);
+	 *     System.out.println(" city: " + address.get(Address::getCity));
+	 *     System.out.println("state: " + address.get(Address::getState));
 	 * </pre>
 	 * Note that the actual extraction (via the invocation of the specified
 	 * getter method) will happen on the primary owner for the specified entity,
@@ -161,106 +129,89 @@ public interface CoherenceRepository<T, ID> extends CrudRepository<T, ID> {
 	<R> R get(ID id, ValueExtractor<? super T, ? extends R> extractor);
 
 	/**
-	 * Return a {@link Fragment} extracted from an entity with a given
-	 * identifier.
-	 * <p/>
-	 * For example, you could extract {@code Person}'s {@code name} and {@code
-	 * age} attributes by calling corresponding getters on the remote {@code
-	 * Person} entity instance:
-	 * <pre>
-	 *     Fragment&lt;Person> person = people.get(ssn, Person::getName, Person::getAge);
-	 *     System.out.println("name: " + person.get(Person::getName));
-	 *     System.out.println(" age: " + person.get(Person::getAge));
-	 * </pre>
-	 * You can also extract nested attributes by defining additional fragments in the
-	 * {@code extractors} array:
-	 * <pre>
-	 *     Fragment&lt;Person> person = people.get(ssn,
-	 *                                             Person::getName, Person::getAge,
-	 *                                             Extractors.fragment(Person::getAddress, Address::getCity, Address::getState));
-	 *     System.out.println(" name: " + person.get(Person::getName));
-	 *     System.out.println("  age: " + person.get(Person::getAge));
-	 *
-	 *     Fragment&lt;Address> address = person.getFragment(Person::getAddress);
-	 *     System.out.println(" city: " + address.get(Address::getCity));
-	 *     System.out.println("state: " + address.get(Address::getState));
-	 * </pre>
-	 * Note that the actual extraction (via the invocation of the specified
-	 * getter methods) will happen on the primary owner for the specified entity,
-	 * and only the extracted fragment will be sent over the network to the client,
-	 * which can significantly reduce the amount of data transferred.
-	 * @param id         the entity's identifier
-	 * @param extractors the {@link ValueExtractor}s to extract values with
-	 * @return the extracted {@link Fragment}
-	 */
-	@SuppressWarnings("unchecked")
-	Fragment<T> get(ID id, ValueExtractor<? super T, ?>... extractors);
-
-	/**
 	 * Return a map of values extracted from all entities in the repository.
-	 * @param extractor the {@link ValueExtractor} to extract values with
-	 * @param <R>       the type of the extracted values
+	 * @param extractor  the {@link ValueExtractor} to extract values with
+	 * @param <R>        the type of the extracted values
 	 * @return the map of extracted values, keyed by entity id
 	 * @see #get(Object, ValueExtractor)
 	 */
 	<R> Map<ID, R> getAll(ValueExtractor<? super T, ? extends R> extractor);
 
 	/**
+	 * Return the entities with the specified identifiers.
+	 * @param colIds  the entity identifiers
+	 * @return the entities with the specified identifiers
+	 */
+	Collection<T> getAll(Collection<? extends ID> colIds);
+
+	/**
 	 * Return a map of values extracted from a set of entities with the given
 	 * identifiers.
-	 * @param colIds    the entity identifiers
-	 * @param extractor the {@link ValueExtractor} to extract values with
-	 * @param <R>       the type of the extracted values
+	 * @param colIds     the entity identifiers
+	 * @param extractor  the {@link ValueExtractor} to extract values with
+	 * @param <R>        the type of the extracted values
 	 * @return the map of extracted values, keyed by entity id
 	 * @see #get(Object, ValueExtractor)
 	 */
 	<R> Map<ID, R> getAll(Collection<? extends ID> colIds, ValueExtractor<? super T, ? extends R> extractor);
 
 	/**
+	 * Return all entities that satisfy the specified criteria.
+	 * @param filter  the criteria to evaluate
+	 * @return all entities that satisfy the specified criteria
+	 */
+	Collection<T> getAll(Filter<?> filter);
+
+	/**
 	 * Return a map of values extracted from a set of entities based on the
 	 * specified criteria.
-	 * @param filter    the criteria to use to select entities for extraction
-	 * @param extractor the {@link ValueExtractor} to extract values with
-	 * @param <R>       the type of the extracted values
+	 * @param filter     the criteria to use to select entities for extraction
+	 * @param extractor  the {@link ValueExtractor} to extract values with
+	 * @param <R>        the type of the extracted values
 	 * @return the map of extracted values, keyed by entity id
 	 * @see #get(Object, ValueExtractor)
 	 */
 	<R> Map<ID, R> getAll(Filter<?> filter, ValueExtractor<? super T, ? extends R> extractor);
 
 	/**
-	 * Return a map of a {@link Fragment}s extracted from all entities in the
-	 * repository.
-	 * @param extractors the {@link ValueExtractor}s to extract the list of
-	 *                   values with
-	 * @return the map of extracted {@link Fragment}s, keyed by entity id
-	 * @see #get(Object, ValueExtractor[])
+	 * Return all entities in this repository, sorted using
+	 * specified {@link Comparable} attribute.
+	 * @param orderBy  the {@link Comparable} attribute to sort the results by
+	 * @param <R>      the type of the extracted values
+	 * @return all entities in this repository, sorted using
+	 *         specified {@link Comparable} attribute.
 	 */
-	@SuppressWarnings("unchecked")
-	Map<ID, Fragment<T>> getAll(ValueExtractor<? super T, ?>... extractors);
+	<R extends Comparable<? super R>> Collection<T> getAllOrderedBy(ValueExtractor<? super T, ? extends R> orderBy);
 
 	/**
-	 * Return a map of {@link Fragment}s extracted from a set of entities with the
-	 * given identifiers.
-	 * @param colIds     the entity identifiers
-	 * @param extractors the {@link ValueExtractor}s to extract the list of
-	 *                   values with
-	 * @return the map of extracted {@link Fragment}s, keyed by entity id
-	 * @see #get(Object, ValueExtractor[])
+	 * Return all entities that satisfy the specified criteria, sorted using
+	 * specified {@link Comparable} attribute.
+	 * @param filter   the criteria to evaluate
+	 * @param orderBy  the {@link Comparable} attribute to sort the results by
+	 * @param <R>      the type of the extracted values
+	 * @return all entities that satisfy specified criteria, sorted using
+	 *         specified {@link Comparable} attribute.
 	 */
-	@SuppressWarnings("unchecked")
-	Map<ID, Fragment<T>> getAll(Collection<? extends ID> colIds, ValueExtractor<? super T, ?>... extractors);
+	<R extends Comparable<? super R>> Collection<T> getAllOrderedBy(Filter<?> filter, ValueExtractor<? super T, ? extends R> orderBy);
 
 	/**
-	 * Return a map of {@link Fragment}s extracted from a set of entities based on
-	 * the specified criteria.
-	 * @param filter     the criteria to use to select entities for extraction
-	 * @param extractors the {@link ValueExtractor}s to extract the list of
-	 *                   values with
-	 * @return the map of extracted {@link Fragment}s, keyed by entity id
-	 * @see #get(Object, ValueExtractor[])
+	 * Return all entities in this repository, sorted using
+	 * specified {@link Remote.Comparator}.
+	 * @param orderBy  the comparator to sort the results with
+	 * @return all entities in this repository, sorted using
+	 *         specified {@link Remote.Comparator}.
 	 */
-	@SuppressWarnings("unchecked")
-	Map<ID, Fragment<T>> getAll(Filter<?> filter, ValueExtractor<? super T, ?>... extractors);
+	Collection<T> getAllOrderedBy(Remote.Comparator<? super T> orderBy);
+
+	/**
+	 * Return all entities that satisfy the specified criteria, sorted using
+	 * specified {@link Remote.Comparator}.
+	 * @param filter   the criteria to evaluate
+	 * @param orderBy  the comparator to sort the results with
+	 * @return all entities that satisfy specified criteria, sorted using
+	 * specified {@link Remote.Comparator}.
+	 */
+	Collection<T> getAllOrderedBy(Filter<?> filter, Remote.Comparator<? super T> orderBy);
 
 	/**
 	 * Update an entity using specified updater and the new value.
@@ -500,14 +451,6 @@ public interface CoherenceRepository<T, ID> extends CrudRepository<T, ID> {
 	 *         entities as values iff {@code fReturn == true}; {@code null} otherwise
 	 */
 	Map<ID, T> deleteAllById(Collection<? extends ID> colIds, boolean fReturn);
-
-	/**
-	 * Delete specified entities.
-	 * @param entities the entities to remove
-	 * @return {@code true} if this repository changed as a result of the call
-	 */
-	@SuppressWarnings("unchecked")
-	boolean deleteAll(T... entities);
 
 	/**
 	 * Delete specified entities.

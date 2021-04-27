@@ -37,8 +37,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import static com.tangosol.util.Extractors.chained;
 import static com.tangosol.util.Extractors.extract;
+import static com.tangosol.util.Extractors.fragment;
 import static com.tangosol.util.Filters.equal;
 import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toSet;
@@ -128,7 +128,7 @@ public class RepositoryTests extends AbstractDataTest {
 
 	@Test
 	void ensureFindAllWithFilter() {
-		assertThat(this.bookRepository.findAll(author()))
+		assertThat(this.bookRepository.getAll(author()))
 				.containsExactlyInAnyOrderElementsOf(
 						this.books.stream().filter((bk) -> bk.getAuthor().equals(FRANK_HERBERT))
 								.collect(toSet()));
@@ -136,19 +136,19 @@ public class RepositoryTests extends AbstractDataTest {
 
 	@Test
 	void ensureFindAllOrdered() {
-		Collection<Book> result = this.bookRepository.findAll(extract("title"));
+		Collection<Book> result = this.bookRepository.getAllOrderedBy(extract("title"));
 		assertThat(result).containsExactly(DUNE, DUNE_MESSIAH, HOBBIT, NAME_OF_THE_WIND);
 	}
 
 	@Test
 	void ensureFindAllWithFilterOrdered() {
-		Collection<Book> result = this.bookRepository.findAll(author(), extract("title"));
+		Collection<Book> result = this.bookRepository.getAllOrderedBy(author(), extract("title"));
 		assertThat(result).containsExactly(DUNE, DUNE_MESSIAH);
 	}
 
 	@Test
 	void ensureFindAllWithRemoteComparator() {
-		Collection<Book> result = this.bookRepository.findAll(Remote.comparator((Remote.Comparator<Book>) (o1, o2) -> {
+		Collection<Book> result = this.bookRepository.getAllOrderedBy(Remote.comparator((Remote.Comparator<Book>) (o1, o2) -> {
 			int c1 = o1.getAuthor().compareTo(o2.getAuthor());
 			if (c1 == 0) {
 				return o1.getPublished().compareTo(o2.getPublished());
@@ -160,7 +160,7 @@ public class RepositoryTests extends AbstractDataTest {
 
 	@Test
 	void ensureFindAllWithFilterAndRemoteComparator() {
-		Collection<Book> result = this.bookRepository.findAll(author(),
+		Collection<Book> result = this.bookRepository.getAllOrderedBy(author(),
 				Remote.comparator((Remote.Comparator<Book>) (o1, o2) -> {
 			int c1 = o1.getAuthor().compareTo(o2.getAuthor());
 			if (c1 == 0) {
@@ -169,14 +169,6 @@ public class RepositoryTests extends AbstractDataTest {
 			return c1;
 		}));
 		assertThat(result).containsExactly(DUNE, DUNE_MESSIAH);
-	}
-
-	@Test
-	public void ensureSaveAllWithVarargs() {
-		this.bookRepository.deleteAll(); // fresh start
-		assertThat(this.book.size()).isEqualTo(0);
-		this.bookRepository.saveAll(DUNE, DUNE_MESSIAH);
-		assertThat(this.book.size()).isEqualTo(2);
 	}
 
 	@Test
@@ -195,85 +187,97 @@ public class RepositoryTests extends AbstractDataTest {
 
 	@Test
 	public void ensureGetWithFragment() {
-		Fragment<Book> bookFragment = this.bookRepository.get(DUNE.getUuid(),
-				chained("author", "firstName"), chained("author", "lastName"));
-		String firstName = bookFragment.get("author.firstName");
-		String lastName = bookFragment.get("author.lastName");
+		Fragment<Author> authorFragment = this.bookRepository.get(DUNE.getUuid(),
+				fragment(Book::getAuthor, Author::getFirstName, Author::getLastName));
+		String firstName = authorFragment.get("firstName");
+		String lastName = authorFragment.get("lastName");
 		assertThat(firstName).isEqualTo(FRANK_HERBERT.getFirstName());
 		assertThat(lastName).isEqualTo(FRANK_HERBERT.getLastName());
 	}
 
 	@Test
 	public void ensureGetAllWithExtractor() {
-		Map<UUID, String> result = this.bookRepository.getAll(chained("author", "firstName"));
+		Map<UUID, Fragment<Author>> result = this.bookRepository.getAll(fragment(Book::getAuthor, Author::getFirstName));
 		assertThat(result).containsAllEntriesOf(
 				this.books.stream().collect(
-						Collectors.toMap(Book::getUuid, (bk) -> bk.getAuthor().getFirstName())));
+						Collectors.toMap(Book::getUuid, (bk) -> {
+							Map<String, Object> fragMap = new HashMap<>();
+							fragMap.put("firstName", bk.getAuthor().getFirstName());
+							return new Fragment<>(fragMap);
+						})));
 	}
 
 	@Test
 	public void ensureGetAllWithIdAndExtractor() {
-		Map<UUID, String> result = this.bookRepository.getAll(
-				Arrays.asList(DUNE.getUuid(), DUNE_MESSIAH.getUuid()), chained("author", "firstName"));
+		Map<UUID, Fragment<Author>> result = this.bookRepository.getAll(
+				Arrays.asList(DUNE.getUuid(), DUNE_MESSIAH.getUuid()), fragment(Book::getAuthor, Author::getFirstName));
 		assertThat(result).containsAllEntriesOf(
 				this.books.stream()
 						.filter((bk) -> bk.getAuthor().equals(FRANK_HERBERT))
-						.collect(Collectors.toMap(Book::getUuid, (bk) -> bk.getAuthor().getFirstName())));
+						.collect(Collectors.toMap(Book::getUuid, (bk) -> {
+							Map<String, Object> fragMap = new HashMap<>();
+							fragMap.put("firstName", bk.getAuthor().getFirstName());
+							return new Fragment<>(fragMap);
+						})));
 	}
 
 	@Test
 	public void ensureGetAllWithFilterAndExtractor() {
-		Map<UUID, String> result = this.bookRepository.getAll(
-				author(), chained("author", "firstName"));
+		Map<UUID, Fragment<Author>> result = this.bookRepository.getAll(
+				author(), fragment(Book::getAuthor, Author::getFirstName));
 		assertThat(result).containsAllEntriesOf(
 				this.books.stream()
 						.filter((bk) -> bk.getAuthor().equals(FRANK_HERBERT))
-						.collect(Collectors.toMap(Book::getUuid, (bk) -> bk.getAuthor().getFirstName())));
+						.collect(Collectors.toMap(Book::getUuid, (bk) -> {
+							Map<String, Object> fragMap = new HashMap<>();
+							fragMap.put("firstName", bk.getAuthor().getFirstName());
+							return new Fragment<>(fragMap);
+						})));
 	}
 
 	@Test
 	void ensureGetAllWithFragment() {
-		Map<UUID, Fragment<Book>> result = this.bookRepository.getAll(chained("author", "firstName"), chained("author", "lastName"));
+		Map<UUID, Fragment<Author>> result = this.bookRepository.getAll(
+				fragment(Book::getAuthor, Author::getFirstName, Author::getLastName));
 		assertThat(result).containsAllEntriesOf(
 				this.books.stream().collect(
 						Collectors.toMap(Book::getUuid, (bk) -> {
-							Map<String, Object> fragment = new HashMap(1, 1.0f);
-							fragment.put("author.firstName", bk.getAuthor().getFirstName());
-							fragment.put("author.lastName", bk.getAuthor().getLastName());
+							Map<String, Object> fragment = new HashMap<>();
+							fragment.put("firstName", bk.getAuthor().getFirstName());
+							fragment.put("lastName", bk.getAuthor().getLastName());
 							return new Fragment<>(fragment);
 						})));
 	}
 
 	@Test
 	void ensureGetAllWithIdsAndFragment() {
-		Map<UUID, Fragment<Book>> result = this.bookRepository.getAll(
+		Map<UUID, Fragment<Author>> result = this.bookRepository.getAll(
 				Arrays.asList(DUNE.getUuid(), DUNE_MESSIAH.getUuid()),
-				chained("author", "firstName"), chained("author", "lastName"));
+				fragment(Book::getAuthor, Author::getFirstName, Author::getLastName));
 		assertThat(result).containsAllEntriesOf(
 				this.books.stream()
 						.filter((bk) -> bk.getAuthor().equals(FRANK_HERBERT))
 						.collect(
 						Collectors.toMap(Book::getUuid, (bk) -> {
-							Map<String, Object> fragment = new HashMap(1, 1.0f);
-							fragment.put("author.firstName", bk.getAuthor().getFirstName());
-							fragment.put("author.lastName", bk.getAuthor().getLastName());
+							Map<String, Object> fragment = new HashMap<>();
+							fragment.put("firstName", bk.getAuthor().getFirstName());
+							fragment.put("lastName", bk.getAuthor().getLastName());
 							return new Fragment<>(fragment);
 						})));
 	}
 
 	@Test
 	void ensureGetAllWithFilterAndFragment() {
-		Map<UUID, Fragment<Book>> result = this.bookRepository.getAll(
-				author(), chained("author", "firstName"),
-				chained("author", "lastName"));
+		Map<UUID, Fragment<Author>> result = this.bookRepository.getAll(
+				author(), fragment(Book::getAuthor, Author::getFirstName, Author::getLastName));
 		assertThat(result).containsAllEntriesOf(
 				this.books.stream()
 						.filter((bk) -> bk.getAuthor().equals(FRANK_HERBERT))
 						.collect(
 								Collectors.toMap(Book::getUuid, (bk) -> {
-									Map<String, Object> fragment = new HashMap(1, 1.0f);
-									fragment.put("author.firstName", bk.getAuthor().getFirstName());
-									fragment.put("author.lastName", bk.getAuthor().getLastName());
+									Map<String, Object> fragment = new HashMap<>(1, 1.0f);
+									fragment.put("firstName", bk.getAuthor().getFirstName());
+									fragment.put("lastName", bk.getAuthor().getLastName());
 									return new Fragment<>(fragment);
 								})));
 	}
@@ -436,22 +440,6 @@ public class RepositoryTests extends AbstractDataTest {
 		result.values().forEach((bk) -> assertThat(bk).isNull());
 		assertThat(this.book.size()).isEqualTo(2);
 		assertThat(this.book.values(author())).isEmpty();
-	}
-
-	@Test
-	void ensureDeleteAllWithVarargs() {
-		boolean result = this.bookRepository.deleteAll(DUNE, DUNE_MESSIAH);
-		assertThat(result).isTrue();
-		assertThat(this.book.size()).isEqualTo(2);
-		assertThat(this.book.values(author())).isEmpty();
-	}
-
-	@Test
-	void ensureDeleteAllWithVarargsNoMatch() {
-		boolean result = this.bookRepository.deleteAll(IT);
-		assertThat(result).isFalse();
-		assertThat(this.book.size()).isEqualTo(4);
-		assertThat(this.book.values(author())).isNotEmpty();
 	}
 
 	@Test
